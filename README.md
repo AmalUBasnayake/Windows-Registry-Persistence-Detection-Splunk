@@ -21,24 +21,35 @@ This project focuses on **Digital Forensics and Threat Hunting**. The goal was t
 I simulated an attack by creating a registry value named `Updater` under the `Run` key. This ensures that every time the computer starts, `notepad.exe` (representing a malware payload) executes automatically.
 * **Key:** `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`
 
-![Registry Persistence Simulation](https://github.com/user-attachments/assets/image_ttttttt.png)
-*[Image: Creating the malicious 'Updater' key in Windows Registry Editor]*
+![Registry Persistence Simulation](ttttttt.png)
+*Image: Creating the malicious 'Updater' key (ttttttt.png)*
 
 ---
 
 ### 2. The Forensic Challenge
 After importing the logs into Splunk, the raw data appeared with **Null Bytes (`\x00`)**. This made it impossible to find the evidence using a standard text search as the characters were separated by null markers.
 
-![Corrupted Raw Logs](https://github.com/user-attachments/assets/image_splsys-7.png)
-*[Image: Raw Windows Event logs in Splunk showing null byte (\x00) encoding issues]*
+![Corrupted Raw Logs](splsys-7.png)
+*Image: Raw Windows Event logs showing encoding issues (splsys-7.png)*
 
 ---
 
 ### 3. Log Normalization & Cleaning
 To reveal the hidden data, I applied a specialized Splunk query using the `rex` command with `mode=sed` to strip out the null bytes. This normalization process made the logs human-readable and searchable.
 
+![Final Investigation Result](splsys-8.png)
+*Image: Final Splunk output showing the identified persistence mechanism (splsys-8.png)*
+
 **Final Splunk Query used for discovery:**
+
 ```splunk
 source="EventL.evtx" 
-| rex field=_raw mode=sed "s/\\x0
-![Corrupted Raw Logs](https://github.com/user-attachments/assets/image_splsys-9.png)
+| rex field=_raw mode=sed "s/\\x00//g" 
+| search *n*o*t*e*p*a*d*
+**Final Splunk Query used for discovery:**
+```splunk
+
+source="EventL.evtx" 
+| rex field=_raw mode=sed "s/\\x00//g" 
+| search *n*o*t*e*p*a*d*
+
